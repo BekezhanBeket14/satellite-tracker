@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#08111f">
+  <meta name="description" content="An educational satellite tracking dashboard interface.">
+  <title>Satellite Tracker | Orbital Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Satellite Tracker home">
+        <span class="brand-mark" aria-hidden="true">ST</span>
+        <span class="brand-copy">
+          <span class="brand-name">Satellite Tracker</span>
+          <span class="brand-caption">ORBITAL DASHBOARD</span>
+        </span>
+      </a>
+
+      <div class="system-status" aria-label="Application status: demonstration mode">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span>DEMO MODE</span>
+        <span class="status-divider" aria-hidden="true"></span>
+        <span class="status-detail">No live satellite feed</span>
+      </div>
+    </header>
+
+    <div class="dashboard">
+      <aside class="satellite-sidebar" aria-labelledby="satellite-list-title">
+        <div class="sidebar-heading">
+          <div>
+            <p class="eyebrow">TRACKING CATALOG</p>
+            <h1 id="satellite-list-title">Satellites</h1>
+          </div>
+          <span class="count-badge" id="satellite-count">03</span>
+        </div>
+
+        <label class="search-box" for="satellite-search">
+          <svg aria-hidden="true" viewBox="0 0 20 20">
+            <circle cx="8.8" cy="8.8" r="5.8"></circle>
+            <path d="m13.2 13.2 4 4"></path>
+          </svg>
+          <span class="visually-hidden">Search satellites</span>
+          <input id="satellite-search" type="search" placeholder="Search satellites" autocomplete="off">
+          <kbd>/</kbd>
+        </label>
+
+        <p class="list-label">OBJECTS <span>·</span> <span id="visible-count">3</span></p>
+        <nav class="satellite-list" id="satellite-list" aria-label="Satellite selection">
+          <button class="satellite-item is-selected" type="button" data-satellite-id="iss" aria-pressed="true">
+            <span class="satellite-icon iss-icon" aria-hidden="true">ISS</span>
+            <span class="satellite-copy">
+              <span class="satellite-name">ISS (ZARYA)</span>
+              <span class="satellite-type">CREWED SPACE STATION</span>
+            </span>
+            <span class="item-chevron" aria-hidden="true">›</span>
+          </button>
+          <button class="satellite-item" type="button" data-satellite-id="hubble" aria-pressed="false">
+            <span class="satellite-icon hubble-icon" aria-hidden="true">HST</span>
+            <span class="satellite-copy">
+              <span class="satellite-name">Hubble</span>
+              <span class="satellite-type">SPACE TELESCOPE</span>
+            </span>
+            <span class="item-chevron" aria-hidden="true">›</span>
+          </button>
+          <button class="satellite-item" type="button" data-satellite-id="noaa19" aria-pressed="false">
+            <span class="satellite-icon noaa-icon" aria-hidden="true">19</span>
+            <span class="satellite-copy">
+              <span class="satellite-name">NOAA 19</span>
+              <span class="satellite-type">WEATHER SATELLITE</span>
+            </span>
+            <span class="item-chevron" aria-hidden="true">›</span>
+          </button>
+          <p class="empty-state" id="empty-state" hidden>No satellites match your search.</p>
+        </nav>
+
+        <div class="sidebar-note">
+          <span class="note-icon" aria-hidden="true">i</span>
+          <p>Catalog entries are for interface demonstration. Orbital data has not been loaded.</p>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <section class="section-heading" aria-labelledby="overview-title">
+          <div>
+            <p class="eyebrow">MISSION CONTROL <span class="eyebrow-separator">/</span> OVERVIEW</p>
+            <h2 id="overview-title">Orbital overview</h2>
+          </div>
+          <span class="data-badge"><span aria-hidden="true"></span> DATA UNAVAILABLE</span>
+        </section>
+
+        <div class="primary-grid">
+          <section class="panel map-panel" aria-labelledby="map-title">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">VISUALIZATION</p>
+                <h3 id="map-title">Earth view</h3>
+              </div>
+              <span class="panel-tag">PLACEHOLDER</span>
+            </div>
+            <div class="map-placeholder" role="img" aria-label="Illustrative Earth graphic. This is not a live map and shows no satellite positions.">
+              <div class="map-grid" aria-hidden="true"></div>
+              <div class="globe-orbit orbit-one" aria-hidden="true"></div>
+              <div class="globe-orbit orbit-two" aria-hidden="true"></div>
+              <div class="globe" aria-hidden="true">
+                <span class="globe-longitude longitude-one"></span>
+                <span class="globe-longitude longitude-two"></span>
+                <span class="globe-latitude latitude-one"></span>
+                <span class="globe-latitude latitude-two"></span>
+                <span class="globe-highlight"></span>
+              </div>
+              <div class="map-crosshair crosshair-one" aria-hidden="true"></div>
+              <div class="map-crosshair crosshair-two" aria-hidden="true"></div>
+              <div class="map-label map-label-top">EARTH · CONCEPT VIEW</div>
+              <div class="map-label map-label-bottom">MAP TILES AND POSITIONS NOT LOADED</div>
+              <div class="map-center-caption">
+                <span class="map-center-icon" aria-hidden="true">◎</span>
+                <span>Illustrative placeholder</span>
+              </div>
+            </div>
+            <p class="panel-footnote"><span class="footnote-dot" aria-hidden="true"></span>This graphic is decorative only—not a real map or satellite position.</p>
+          </section>
+
+          <section class="panel details-panel" aria-labelledby="details-title" aria-live="polite">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">SELECTED OBJECT</p>
+                <h3 id="details-title">Satellite details</h3>
+              </div>
+              <span class="detail-symbol" id="detail-symbol" aria-hidden="true">ISS</span>
+            </div>
+            <div class="object-summary">
+              <p class="object-kicker" id="object-kicker">CREWED SPACE STATION</p>
+              <h4 id="selected-name">ISS (ZARYA)</h4>
+              <p class="object-description" id="object-description">A crewed orbital laboratory. Live orbital information is not connected in this demo.</p>
+            </div>
+            <div class="detail-divider"></div>
+            <dl class="detail-list">
+              <div>
+                <dt>Tracking status</dt>
+                <dd><span class="unavailable-dot" aria-hidden="true"></span><span id="tracking-status">Unavailable</span></dd>
+              </div>
+              <div>
+                <dt>Data source</dt>
+                <dd>Not connected</dd>
+              </div>
+              <div>
+                <dt>Last update</dt>
+                <dd>—</dd>
+              </div>
+            </dl>
+            <p class="details-notice">Select an object from the catalog. Real-time tracking will be added in a future milestone.</p>
+          </section>
+        </div>
+
+        <section class="telemetry-section" aria-labelledby="telemetry-title">
+          <div class="telemetry-heading">
+            <div>
+              <p class="eyebrow">FLIGHT DATA</p>
+              <h3 id="telemetry-title">Telemetry</h3>
+            </div>
+            <span class="telemetry-status">AWAITING ORBITAL DATA</span>
+          </div>
+          <div class="telemetry-grid">
+            <article class="panel telemetry-card">
+              <div class="metric-heading"><span class="metric-icon altitude-icon" aria-hidden="true">↕</span><h4>Altitude</h4></div>
+              <p class="metric-value">— <span>km</span></p>
+              <p class="metric-caption">Unavailable · no orbital data</p>
+            </article>
+            <article class="panel telemetry-card">
+              <div class="metric-heading"><span class="metric-icon velocity-icon" aria-hidden="true">↗</span><h4>Velocity</h4></div>
+              <p class="metric-value">— <span>km/s</span></p>
+              <p class="metric-caption">Unavailable · no orbital data</p>
+            </article>
+            <article class="panel telemetry-card">
+              <div class="metric-heading"><span class="metric-icon latitude-icon" aria-hidden="true">φ</span><h4>Latitude</h4></div>
+              <p class="metric-value">— <span>°</span></p>
+              <p class="metric-caption">Unavailable · no position data</p>
+            </article>
+            <article class="panel telemetry-card">
+              <div class="metric-heading"><span class="metric-icon longitude-icon" aria-hidden="true">λ</span><h4>Longitude</h4></div>
+              <p class="metric-value">— <span>°</span></p>
+              <p class="metric-caption">Unavailable · no position data</p>
+            </article>
+          </div>
+          <p class="telemetry-disclaimer">No telemetry values are being simulated or presented as real measurements.</p>
+        </section>
+
+        <footer class="page-footer">
+          <span>BUILT FOR LEARNING · SATELLITE TRACKER</span>
+          <span>DEMONSTRATION INTERFACE · NOT A LIVE TRACKER</span>
+        </footer>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
