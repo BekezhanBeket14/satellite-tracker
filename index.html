@@ -4,9 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#08111f">
-  <meta name="description" content="An educational satellite tracking dashboard interface.">
+  <meta name="description" content="An educational ISS orbit prediction dashboard using published orbital elements.">
   <title>Satellite Tracker | Orbital Dashboard</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/satellite.js@6.0.1/dist/satellite.min.js" defer></script>
   <script src="script.js" defer></script>
 </head>
 <body>
@@ -20,11 +23,11 @@
         </span>
       </a>
 
-      <div class="system-status" aria-label="Application status: demonstration mode">
+      <div class="system-status is-loading" id="system-status" role="status" aria-live="polite">
         <span class="status-dot" aria-hidden="true"></span>
-        <span>DEMO MODE</span>
+        <span id="system-status-label">LOADING ISS DATA</span>
         <span class="status-divider" aria-hidden="true"></span>
-        <span class="status-detail">No live satellite feed</span>
+        <span class="status-detail" id="system-status-detail">Connecting to CelesTrak…</span>
       </div>
     </header>
 
@@ -79,7 +82,7 @@
 
         <div class="sidebar-note">
           <span class="note-icon" aria-hidden="true">i</span>
-          <p>Catalog entries are for interface demonstration. Orbital data has not been loaded.</p>
+          <p>Only the ISS (NORAD 25544) is tracked. Other catalog entries remain for interface practice.</p>
         </div>
       </aside>
 
@@ -89,7 +92,7 @@
             <p class="eyebrow">MISSION CONTROL <span class="eyebrow-separator">/</span> OVERVIEW</p>
             <h2 id="overview-title">Orbital overview</h2>
           </div>
-          <span class="data-badge"><span aria-hidden="true"></span> DATA UNAVAILABLE</span>
+          <span class="data-badge is-loading" id="data-badge"><span aria-hidden="true"></span><span id="data-badge-label">LOADING DATA</span></span>
         </section>
 
         <div class="primary-grid">
@@ -99,29 +102,20 @@
                 <p class="eyebrow">VISUALIZATION</p>
                 <h3 id="map-title">Earth view</h3>
               </div>
-              <span class="panel-tag">PLACEHOLDER</span>
+              <span class="panel-tag">ISS · NORAD 25544</span>
             </div>
-            <div class="map-placeholder" role="img" aria-label="Illustrative Earth graphic. This is not a live map and shows no satellite positions.">
-              <div class="map-grid" aria-hidden="true"></div>
-              <div class="globe-orbit orbit-one" aria-hidden="true"></div>
-              <div class="globe-orbit orbit-two" aria-hidden="true"></div>
-              <div class="globe" aria-hidden="true">
-                <span class="globe-longitude longitude-one"></span>
-                <span class="globe-longitude longitude-two"></span>
-                <span class="globe-latitude latitude-one"></span>
-                <span class="globe-latitude latitude-two"></span>
-                <span class="globe-highlight"></span>
-              </div>
-              <div class="map-crosshair crosshair-one" aria-hidden="true"></div>
-              <div class="map-crosshair crosshair-two" aria-hidden="true"></div>
-              <div class="map-label map-label-top">EARTH · CONCEPT VIEW</div>
-              <div class="map-label map-label-bottom">MAP TILES AND POSITIONS NOT LOADED</div>
-              <div class="map-center-caption">
-                <span class="map-center-icon" aria-hidden="true">◎</span>
-                <span>Illustrative placeholder</span>
-              </div>
+            <div class="map-frame">
+              <div class="leaflet-map" id="map" aria-label="Interactive map showing the calculated position of the ISS"></div>
+              <p class="map-message" id="map-message" role="status">Waiting for orbital data…</p>
             </div>
-            <p class="panel-footnote"><span class="footnote-dot" aria-hidden="true"></span>This graphic is decorative only—not a real map or satellite position.</p>
+            <div class="map-actions">
+              <p class="panel-footnote"><span class="footnote-dot" aria-hidden="true"></span>Position is an SGP4 prediction from published orbital elements—not direct ISS telemetry.</p>
+              <button class="control-button" id="follow-toggle" type="button" aria-pressed="false">Follow ISS: Off</button>
+            </div>
+            <div class="error-actions" id="error-actions" hidden>
+              <p class="error-message" id="error-message" role="alert"></p>
+              <button class="control-button" id="retry-button" type="button">Retry data fetch</button>
+            </div>
           </section>
 
           <section class="panel details-panel" aria-labelledby="details-title" aria-live="polite">
@@ -135,24 +129,28 @@
             <div class="object-summary">
               <p class="object-kicker" id="object-kicker">CREWED SPACE STATION</p>
               <h4 id="selected-name">ISS (ZARYA)</h4>
-              <p class="object-description" id="object-description">A crewed orbital laboratory. Live orbital information is not connected in this demo.</p>
+              <p class="object-description" id="object-description">A crewed orbital laboratory. Its position is predicted from published orbital elements.</p>
             </div>
             <div class="detail-divider"></div>
             <dl class="detail-list">
               <div>
                 <dt>Tracking status</dt>
-                <dd><span class="unavailable-dot" aria-hidden="true"></span><span id="tracking-status">Unavailable</span></dd>
+                <dd><span class="unavailable-dot" id="tracking-dot" aria-hidden="true"></span><span id="tracking-status">Loading</span></dd>
               </div>
               <div>
                 <dt>Data source</dt>
-                <dd>Not connected</dd>
+                <dd>CelesTrak OMM</dd>
               </div>
               <div>
-                <dt>Last update</dt>
-                <dd>—</dd>
+                <dt>Current time (UTC)</dt>
+                <dd id="current-time">—</dd>
+              </div>
+              <div>
+                <dt>Orbital data epoch</dt>
+                <dd id="orbital-epoch">—</dd>
               </div>
             </dl>
-            <p class="details-notice">Select an object from the catalog. Real-time tracking will be added in a future milestone.</p>
+            <p class="details-notice" id="details-notice">Orbital predictions use the element set epoch shown here; this is not live telemetry received from the ISS.</p>
           </section>
         </div>
 
@@ -162,36 +160,36 @@
               <p class="eyebrow">FLIGHT DATA</p>
               <h3 id="telemetry-title">Telemetry</h3>
             </div>
-            <span class="telemetry-status">AWAITING ORBITAL DATA</span>
+            <span class="telemetry-status" id="telemetry-status">AWAITING ORBITAL DATA</span>
           </div>
           <div class="telemetry-grid">
             <article class="panel telemetry-card">
               <div class="metric-heading"><span class="metric-icon altitude-icon" aria-hidden="true">↕</span><h4>Altitude</h4></div>
-              <p class="metric-value">— <span>km</span></p>
-              <p class="metric-caption">Unavailable · no orbital data</p>
+              <p class="metric-value"><span class="metric-number" id="altitude-value">—</span> <span>km</span></p>
+              <p class="metric-caption" id="altitude-caption">Waiting for orbital data</p>
             </article>
             <article class="panel telemetry-card">
               <div class="metric-heading"><span class="metric-icon velocity-icon" aria-hidden="true">↗</span><h4>Velocity</h4></div>
-              <p class="metric-value">— <span>km/s</span></p>
-              <p class="metric-caption">Unavailable · no orbital data</p>
+              <p class="metric-value"><span class="metric-number" id="velocity-value">—</span> <span>km/s</span></p>
+              <p class="metric-caption" id="velocity-caption">Waiting for orbital data</p>
             </article>
             <article class="panel telemetry-card">
               <div class="metric-heading"><span class="metric-icon latitude-icon" aria-hidden="true">φ</span><h4>Latitude</h4></div>
-              <p class="metric-value">— <span>°</span></p>
-              <p class="metric-caption">Unavailable · no position data</p>
+              <p class="metric-value"><span class="metric-number" id="latitude-value">—</span> <span>°</span></p>
+              <p class="metric-caption" id="latitude-caption">Waiting for position data</p>
             </article>
             <article class="panel telemetry-card">
               <div class="metric-heading"><span class="metric-icon longitude-icon" aria-hidden="true">λ</span><h4>Longitude</h4></div>
-              <p class="metric-value">— <span>°</span></p>
-              <p class="metric-caption">Unavailable · no position data</p>
+              <p class="metric-value"><span class="metric-number" id="longitude-value">—</span> <span>°</span></p>
+              <p class="metric-caption" id="longitude-caption">Waiting for position data</p>
             </article>
           </div>
-          <p class="telemetry-disclaimer">No telemetry values are being simulated or presented as real measurements.</p>
+          <p class="telemetry-disclaimer">Calculated telemetry is an orbital prediction based on published OMM data, not a live measurement from the spacecraft.</p>
         </section>
 
         <footer class="page-footer">
           <span>BUILT FOR LEARNING · SATELLITE TRACKER</span>
-          <span>DEMONSTRATION INTERFACE · NOT A LIVE TRACKER</span>
+          <span>ISS ORBIT PREDICTION · NOT DIRECT SPACECRAFT TELEMETRY</span>
         </footer>
       </main>
     </div>
